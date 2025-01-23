@@ -1,8 +1,31 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+
+// Add type declaration for ethereum
+declare global {
+    interface Window {
+        ethereum?: {
+            selectedAddress?: string;
+        };
+    }
+}
 
 const Navbar = () => {
     const router = useRouter();
+    const [address, setAddress] = useState<string>('');
+
+    useEffect(() => {
+        // Check for ethereum address after component mounts
+        if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
+            setAddress(window.ethereum.selectedAddress);
+        }
+    }, []);
+
+    const formatAddress = (addr: string) => {
+        if (!addr) return '';
+        return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+    };
 
     const isActive = (path: string) => {
         return router.pathname === path ? 'bg-blue-600' : '';
@@ -42,7 +65,7 @@ const Navbar = () => {
                         </Link>
                     </div>
                     <div className="ml-auto text-gray-400 text-sm">
-                        Connected: {window.ethereum?.selectedAddress?.slice(0, 6)}...{window.ethereum?.selectedAddress?.slice(-4)}
+                        {address && `Connected: ${formatAddress(address)}`}
                     </div>
                 </div>
             </div>
