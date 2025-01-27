@@ -1,0 +1,19 @@
+[toolchain]
+
+[features]
+resolution = true
+skip-lint = false
+seeds = false
+
+[programs.localnet]
+contract = "DE2z65pCcNYqEqhKTV62pEu7Kp1qbV4znax2VrAL6Y5p"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 10000 tests/**/*.ts"
