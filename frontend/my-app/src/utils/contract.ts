@@ -91,7 +91,7 @@ export const LAUNCHPAD_ABI = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "prjectId",
+        "name": "projectId",
         "type": "uint256"
       }
     ],
@@ -253,11 +253,6 @@ export const LAUNCHPAD_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "fixedInvest",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "_startTime",
         "type": "uint256"
       },
@@ -273,7 +268,12 @@ export const LAUNCHPAD_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "_sendingTokensToSender",
+        "name": "_ratioOfTokens",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxPay",
         "type": "uint256"
       }
     ],
@@ -362,11 +362,6 @@ export const LAUNCHPAD_ABI = [
           },
           {
             "internalType": "uint256",
-            "name": "fixedInvest",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "totalCollected",
             "type": "uint256"
           },
@@ -391,18 +386,13 @@ export const LAUNCHPAD_ABI = [
             "type": "address"
           },
           {
-            "internalType": "bool",
-            "name": "canStillFund",
-            "type": "bool"
-          },
-          {
             "internalType": "uint256",
-            "name": "minimumpay",
+            "name": "maxPay",
             "type": "uint256"
           },
           {
             "internalType": "uint256",
-            "name": "sendingTokensToSender",
+            "name": "minimumpay",
             "type": "uint256"
           },
           {
@@ -414,6 +404,11 @@ export const LAUNCHPAD_ABI = [
             "internalType": "bool",
             "name": "isActive",
             "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "ratioOfTokens",
+            "type": "uint256"
           }
         ],
         "internalType": "struct NewLaunchpad.Project",
@@ -540,11 +535,6 @@ export const LAUNCHPAD_ABI = [
       },
       {
         "internalType": "uint256",
-        "name": "fixedInvest",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
         "name": "totalCollected",
         "type": "uint256"
       },
@@ -569,18 +559,13 @@ export const LAUNCHPAD_ABI = [
         "type": "address"
       },
       {
-        "internalType": "bool",
-        "name": "canStillFund",
-        "type": "bool"
-      },
-      {
         "internalType": "uint256",
-        "name": "minimumpay",
+        "name": "maxPay",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "sendingTokensToSender",
+        "name": "minimumpay",
         "type": "uint256"
       },
       {
@@ -592,6 +577,11 @@ export const LAUNCHPAD_ABI = [
         "internalType": "bool",
         "name": "isActive",
         "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ratioOfTokens",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -611,7 +601,7 @@ export const LAUNCHPAD_ABI = [
     "type": "function"
   }
 ]
-export const LAUNCHPAD_ADDRESS = "0xE94A37Da65Cc76990fb27af03B0826B6771EeF8e";
+export const LAUNCHPAD_ADDRESS = "0x8FFAcd29448979f4E1530726e5F4a01aAD8618E9";
 
 export const getLaunchpadContract = (providerOrSigner: any) => {
     try {

@@ -9,11 +9,11 @@ const CreateProject = () => {
         name: '',
         description: '',
         goal: '',
-        fixedInvest: '',
         startTime: '',
         endTime: '',
         minimumPay: '',
-        sendingTokensToSender: ''
+        maxPay:'',
+        ratioOfTokens: ''
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -29,11 +29,11 @@ const CreateProject = () => {
                 formData.name,
                 formData.description,
                 ethers.utils.parseEther(formData.goal),
-                ethers.utils.parseEther(formData.fixedInvest),
                 Math.floor(new Date(formData.startTime).getTime() / 1000),
                 Math.floor(new Date(formData.endTime).getTime() / 1000),
                 ethers.utils.parseEther(formData.minimumPay),
-                ethers.utils.parseEther(formData.sendingTokensToSender)
+                ethers.utils.parseEther(formData.maxPay),
+                ethers.utils.parseEther(formData.ratioOfTokens)
             );
 
             await tx.wait();
@@ -124,19 +124,6 @@ const CreateProject = () => {
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 mb-2">Fixed Investment (in MATIC)</label>
-                            <input
-                                type="number"
-                                name="fixedInvest"
-                                value={formData.fixedInvest}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
-                                         text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
-                                placeholder="Enter fixed investment amount"
-                            />
-                        </div>
-
-                        <div>
                             <label className="block text-gray-300 mb-2">Minimum Pay (in MATIC)</label>
                             <input
                                 type="number"
@@ -150,15 +137,28 @@ const CreateProject = () => {
                         </div>
 
                         <div>
-                            <label className="block text-gray-300 mb-2">Tokens to Sender</label>
+                            <label className="block text-gray-300 mb-2">Maximum Pay (in MATIC)</label>
                             <input
                                 type="number"
-                                name="sendingTokensToSender"
-                                value={formData.sendingTokensToSender}
+                                name="maxPay"
+                                value={formData.maxPay}
                                 onChange={handleChange}
                                 className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
                                          text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
-                                placeholder="Enter tokens to sender"
+                                placeholder="Enter maximum payment"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-300 mb-2">Tokens to Sender</label>
+                            <input
+                                type="number"
+                                name="ratioOfTokens"
+                                value={formData.ratioOfTokens}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                                         text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
+                                placeholder="Enter tokens ration to sender"
                             />
                         </div>
 

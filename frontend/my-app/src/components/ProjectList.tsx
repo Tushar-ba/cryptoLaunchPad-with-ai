@@ -5,17 +5,21 @@ import CountdownTimer from './CountdownTimer';
 import { useNetwork } from '../contexts/NetworkContext';
 
 interface Project {
-  projectId: number;
+  projectId: ethers.BigNumber;
+  creator: string;
   name: string;
   description: string;
   goal: ethers.BigNumber;
-  fixedInvest: ethers.BigNumber;
   totalCollected: ethers.BigNumber;
-  fundingPeriodEnd: number;
-  isActive: boolean;
-  creator: string;
+  fundingPeriodStart: ethers.BigNumber;
+  fundingPeriodEnd: ethers.BigNumber;
+  totalInvestors: ethers.BigNumber;
+  tokenContractAddress: string;
+  maxPay: ethers.BigNumber;
+  minimumpay: ethers.BigNumber;
   totalWithdrawable: ethers.BigNumber;
-  // ... other project properties
+  isActive: boolean;
+  ratioOfTokens: ethers.BigNumber;
 }
 
 const ProjectCard = ({ project }: { project: Project }) => {
@@ -48,7 +52,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
 
       // Check if funding period has ended
       const currentTime = Math.floor(Date.now() / 1000);
-      if (currentTime <= project.fundingPeriodEnd) {
+      if (currentTime <= project.fundingPeriodEnd.toNumber()) {
         throw new Error("Funding period has not ended yet");
       }
 
@@ -86,17 +90,32 @@ const ProjectCard = ({ project }: { project: Project }) => {
     return (
       isCreator && 
       !project.isActive && 
-      currentTime > project.fundingPeriodEnd &&
+      currentTime > project.fundingPeriodEnd.toNumber() &&
       !project.totalWithdrawable.eq(0)
     );
   };
 
-  const formatEther = (value: ethers.BigNumber) => {
-    return ethers.utils.formatUnits(value, 18);
+  const formatEther = (value: ethers.BigNumber | undefined) => {
+    if (!value) return "0";
+    try {
+      return ethers.utils.formatUnits(value, 18);
+    } catch (error) {
+      console.error('Error formatting value:', error);
+      return "0";
+    }
   };
 
-  const progress = (Number(formatEther(project.totalCollected)) / 
-                   Number(formatEther(project.goal))) * 100;
+  const progress = () => {
+    try {
+      const collected = Number(formatEther(project.totalCollected));
+      const goal = Number(formatEther(project.goal));
+      if (goal === 0) return 0;
+      return (collected / goal) * 100;
+    } catch (error) {
+      console.error('Error calculating progress:', error);
+      return 0;
+    }
+  };
 
   return (
     <div className={`bg-black text-white rounded-lg shadow-xl p-6 mb-4 border 
@@ -119,7 +138,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
           </div>
           {project.isActive ? (
             <CountdownTimer 
-              endTime={Number(project.fundingPeriodEnd)} 
+              endTime={Number(project.fundingPeriodEnd.toNumber())} 
               onExpire={handleExpire}
             />
           ) : (
@@ -131,12 +150,12 @@ const ProjectCard = ({ project }: { project: Project }) => {
       <div className="mb-6">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-gray-400">Progress</span>
-          <span className="text-gray-300">{progress.toFixed(2)}%</span>
+          <span className="text-gray-300">{progress().toFixed(2)}%</span>
         </div>
         <div className="w-full bg-gray-800 rounded-full h-2">
           <div 
             className={`${project.isActive ? 'bg-white' : 'bg-red-500'} rounded-full h-2 transition-all duration-500`}
-            style={{ width: `${Math.min(progress, 100)}%` }}
+            style={{ width: `${Math.min(progress(), 100)}%` }}
           />
         </div>
       </div>
@@ -149,9 +168,9 @@ const ProjectCard = ({ project }: { project: Project }) => {
           </div>
         </div>
         <div>
-          <div className="text-gray-400 mb-1">Fixed Investment</div>
+          <div className="text-gray-400 mb-1">Minimum Pay</div>
           <div className="font-semibold text-white">
-            {formatEther(project.fixedInvest)} MATIC
+            {formatEther(project.minimumpay)} MATIC
           </div>
         </div>
         <div>
@@ -174,7 +193,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
                 <div className="text-red-400 text-sm mt-1">
                   {project.totalWithdrawable.eq(0) 
                     ? "No funds available" 
-                    : Math.floor(Date.now() / 1000) <= project.fundingPeriodEnd 
+                    : Math.floor(Date.now() / 1000) <= project.fundingPeriodEnd.toNumber() 
                       ? "Funding period not ended yet"
                       : "Cannot withdraw at this time"}
                 </div>
@@ -209,44 +228,47 @@ const ProjectList = () => {
             
             try {
                 if (currentNetwork === 'polygon') {
-                    // Existing Polygon projects loading logic
                     if (typeof window.ethereum !== 'undefined') {
                         const provider = new ethers.providers.Web3Provider(window.ethereum);
                         const contract = getLaunchpadContract(provider);
                         const currentProjectId = await contract.PROJECTID();
                         
+                        // Create temporary array to hold all projects
+                        const loadedProjects = [];
+                        
                         for (let i = 1; i <= currentProjectId.toNumber(); i++) {
                             const project = await contract.getProject(i);
                             if (project.creator !== ethers.constants.AddressZero) {
-                                setProjects(prev => [...prev, project]);
+                                loadedProjects.push(project);
                             }
                         }
+                        
+                        // Set all projects at once instead of updating one by one
+                        setProjects(loadedProjects);
                     }
                 } else {
                     // Sample Solana projects for testing
                     const sampleSolanaProjects = [
                         {
-                            projectId: 1,
+                            projectId: ethers.BigNumber.from("1"),
+                            creator: "SolanaAddress1...",
                             name: "Solana Project 1",
                             description: "This is a test Solana project",
                             goal: ethers.BigNumber.from("10000000000"),
-                            fixedInvest: ethers.BigNumber.from("1000000000"),
                             totalCollected: ethers.BigNumber.from("5000000000"),
-                            fundingPeriodEnd: Math.floor(Date.now() / 1000) + 86400,
+                            fundingPeriodEnd: ethers.BigNumber.from(Math.floor(Date.now() / 1000) + 86400),
                             isActive: true,
-                            creator: "SolanaAddress1...",
                             totalWithdrawable: ethers.BigNumber.from("0")
                         },
                         {
-                            projectId: 2,
+                            projectId: ethers.BigNumber.from("2"),
+                            creator: "SolanaAddress2...",
                             name: "Solana Project 2",
                             description: "Another test Solana project",
                             goal: ethers.BigNumber.from("20000000000"),
-                            fixedInvest: ethers.BigNumber.from("2000000000"),
                             totalCollected: ethers.BigNumber.from("10000000000"),
-                            fundingPeriodEnd: Math.floor(Date.now() / 1000) - 3600,
+                            fundingPeriodEnd: ethers.BigNumber.from(Math.floor(Date.now() / 1000) - 3600),
                             isActive: false,
-                            creator: "SolanaAddress2...",
                             totalWithdrawable: ethers.BigNumber.from("10000000000")
                         }
                     ];
