@@ -84,7 +84,8 @@ const CreateSolanaProject = () => {
                     type="text"
                     value={tokenMint}
                     onChange={(e) => setTokenMint(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     placeholder="Enter SPL token mint address"
                     required
                 />
@@ -95,7 +96,8 @@ const CreateSolanaProject = () => {
                     type="number"
                     value={tokenPrice}
                     onChange={(e) => setTokenPrice(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     required
                     step="0.000000001"
                 />
@@ -106,7 +108,8 @@ const CreateSolanaProject = () => {
                     type="number"
                     value={tokenRatio}
                     onChange={(e) => setTokenRatio(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     required
                 />
             </div>
@@ -116,7 +119,8 @@ const CreateSolanaProject = () => {
                     type="number"
                     value={poolSize}
                     onChange={(e) => setPoolSize(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     required
                     step="0.000000001"
                 />
@@ -127,7 +131,8 @@ const CreateSolanaProject = () => {
                     type="datetime-local"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     required
                 />
             </div>
@@ -137,7 +142,8 @@ const CreateSolanaProject = () => {
                     type="datetime-local"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     required
                 />
             </div>

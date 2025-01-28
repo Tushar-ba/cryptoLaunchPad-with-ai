@@ -90,6 +90,16 @@ const SolanaProjectCard = ({ pool, pubkey }: { pool: SolanaPool; pubkey: PublicK
   );
 };
 
+const verifyProgram = async (connection: Connection) => {
+  const programInfo = await connection.getAccountInfo(PROGRAM_ID);
+  console.log("Program exists:", !!programInfo);
+  if (programInfo) {
+    console.log("Program data length:", programInfo.data.length);
+    console.log("Program executable:", programInfo.executable);
+    console.log("Program owner:", programInfo.owner.toString());
+  }
+};
+
 const SolanaProjectList = () => {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,12 +113,12 @@ const SolanaProjectList = () => {
     try {
       setLoading(true);
       console.log("Fetching projects...");
-      console.log("Program ID:", PROGRAM_ID.toString());
-      console.log("Network:", NETWORK);
-
-      const connection = new Connection(NETWORK, 'confirmed');
       
-      // Create a dummy wallet if none is connected
+      const connection = new Connection(NETWORK, 'confirmed');
+      const version = await connection.getVersion();
+      console.log("Solana connection version:", version);
+      
+      // Create provider
       const dummyKeypair = Keypair.generate();
       const dummyWallet = {
         publicKey: dummyKeypair.publicKey,
@@ -120,51 +130,67 @@ const SolanaProjectList = () => {
       const provider = new anchor.AnchorProvider(
         connection,
         wallet || dummyWallet,
-        { commitment: 'confirmed' }
+        { commitment: 'confirmed', preflightCommitment: 'confirmed' }
       );
 
       const program = new anchor.Program(IDL as anchor.Idl, PROGRAM_ID, provider);
+      console.log("Program initialized:", program.programId.toString());
       
-      // Get all program accounts with a more specific filter
-      const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
-        commitment: 'confirmed',
-        filters: [
-          {
-            dataSize: 145, // Size of your Pool struct (adjust if needed)
-          },
-        ],
-      });
+      try {
+        // Get all accounts without filter first
+        const allAccounts = await connection.getProgramAccounts(PROGRAM_ID, {
+          commitment: 'confirmed',
+        });
+        console.log("All program accounts:", allAccounts);
 
-      console.log("Found accounts:", accounts);
+        // Log the data size of each account to determine the correct size
+        allAccounts.forEach(({ account }, index) => {
+          console.log(`Account ${index} data size:`, account.data.length);
+        });
 
-      const pools = await Promise.all(accounts.map(async ({ pubkey, account }) => {
-        try {
-          console.log(`Attempting to decode account ${pubkey.toString()}`);
-          console.log("Account data:", account.data);
-          
-          const poolData = program.coder.accounts.decode(
-            'Pool',
-            account.data
-          );
-          
-          console.log("Successfully decoded pool data:", poolData);
-          
-          return {
-            publicKey: pubkey,
-            account: poolData
-          };
-        } catch (e) {
-          console.error(`Error decoding account ${pubkey.toString()}:`, e);
-          return null;
+        // Try to decode all accounts
+        const pools = await Promise.all(allAccounts.map(async ({ pubkey, account }) => {
+          try {
+            console.log(`Attempting to decode account ${pubkey.toString()}`);
+            console.log("Account data:", Buffer.from(account.data).toString('hex'));
+            
+            const poolData = program.coder.accounts.decode(
+              'Pool', // Make sure this matches your IDL account name exactly
+              account.data
+            );
+            
+            console.log("Successfully decoded pool data:", poolData);
+            
+            return {
+              publicKey: pubkey,
+              account: poolData
+            };
+          } catch (e) {
+            console.error(`Error decoding account ${pubkey.toString()}:`, e);
+            console.error("Error details:", e);
+            return null;
+          }
+        }));
+
+        const validPools = pools.filter(Boolean);
+        console.log('Valid pools:', validPools);
+
+        if (validPools.length > 0) {
+          setProjects(validPools);
+        } else {
+          console.log("No valid pools found. Possible issues:");
+          console.log("1. Account structure doesn't match IDL");
+          console.log("2. Incorrect program ID");
+          console.log("3. Accounts exist but are not pool accounts");
         }
-      }));
 
-      const validPools = pools.filter(Boolean);
-      console.log('Valid pools:', validPools);
-      setProjects(validPools);
+      } catch (e) {
+        console.error("Error fetching program accounts:", e);
+        console.error("Error details:", e);
+      }
 
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('Error in fetchProjects:', error);
     } finally {
       setLoading(false);
     }

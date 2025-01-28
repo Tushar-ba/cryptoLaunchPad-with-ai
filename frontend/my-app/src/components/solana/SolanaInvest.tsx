@@ -56,7 +56,8 @@ const SolanaInvest = () => {
                     type="text"
                     value={poolAddress}
                     onChange={(e) => setPoolAddress(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     placeholder="Enter pool address"
                     required
                 />
@@ -67,7 +68,8 @@ const SolanaInvest = () => {
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg 
+                               text-white placeholder-gray-400 focus:outline-none focus:border-gray-500"
                     step="0.000000001"
                     required
                 />
