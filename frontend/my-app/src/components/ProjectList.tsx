@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { getLaunchpadContract } from '../utils/contract';
 import CountdownTimer from './CountdownTimer';
+import { useNetwork } from '../contexts/NetworkContext';
 
 interface Project {
   projectId: number;
@@ -198,55 +199,95 @@ const ProjectCard = ({ project }: { project: Project }) => {
 
 const ProjectList = () => {
     const [projects, setProjects] = useState<Project[]>([]);
-
-    const fetchProject = async (id: number) => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const contract = getLaunchpadContract(provider);
-            const project = await contract.getProject(id);
-            if (project.creator !== ethers.constants.AddressZero) {
-                // Check if project already exists before adding
-                setProjects(prev => {
-                    const exists = prev.some(p => p.projectId.toString() === project.projectId.toString());
-                    if (!exists) {
-                        return [...prev, project];
-                    }
-                    return prev;
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching project:', error);
-        }
-    };
+    const [loading, setLoading] = useState(true);
+    const { currentNetwork } = useNetwork();
 
     useEffect(() => {
         const loadProjects = async () => {
+            setLoading(true);
+            setProjects([]); // Clear existing projects when switching networks
+            
             try {
-                setProjects([]); // Reset projects before loading
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                const contract = getLaunchpadContract(provider);
-                const currentProjectId = await contract.PROJECTID();
-                
-                for (let i = 1; i <= currentProjectId.toNumber(); i++) {
-                    await fetchProject(i);
+                if (currentNetwork === 'polygon') {
+                    // Existing Polygon projects loading logic
+                    if (typeof window.ethereum !== 'undefined') {
+                        const provider = new ethers.providers.Web3Provider(window.ethereum);
+                        const contract = getLaunchpadContract(provider);
+                        const currentProjectId = await contract.PROJECTID();
+                        
+                        for (let i = 1; i <= currentProjectId.toNumber(); i++) {
+                            const project = await contract.getProject(i);
+                            if (project.creator !== ethers.constants.AddressZero) {
+                                setProjects(prev => [...prev, project]);
+                            }
+                        }
+                    }
+                } else {
+                    // Sample Solana projects for testing
+                    const sampleSolanaProjects = [
+                        {
+                            projectId: 1,
+                            name: "Solana Project 1",
+                            description: "This is a test Solana project",
+                            goal: ethers.BigNumber.from("10000000000"),
+                            fixedInvest: ethers.BigNumber.from("1000000000"),
+                            totalCollected: ethers.BigNumber.from("5000000000"),
+                            fundingPeriodEnd: Math.floor(Date.now() / 1000) + 86400,
+                            isActive: true,
+                            creator: "SolanaAddress1...",
+                            totalWithdrawable: ethers.BigNumber.from("0")
+                        },
+                        {
+                            projectId: 2,
+                            name: "Solana Project 2",
+                            description: "Another test Solana project",
+                            goal: ethers.BigNumber.from("20000000000"),
+                            fixedInvest: ethers.BigNumber.from("2000000000"),
+                            totalCollected: ethers.BigNumber.from("10000000000"),
+                            fundingPeriodEnd: Math.floor(Date.now() / 1000) - 3600,
+                            isActive: false,
+                            creator: "SolanaAddress2...",
+                            totalWithdrawable: ethers.BigNumber.from("10000000000")
+                        }
+                    ];
+                    setProjects(sampleSolanaProjects);
                 }
             } catch (error) {
                 console.error('Error loading projects:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
         loadProjects();
-    }, []);
+    }, [currentNetwork]); // Re-run when network changes
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-900 px-4 py-8">
+                <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold mb-8 text-white">Loading Projects...</h2>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-900 px-4 py-8">
             <div className="container mx-auto">
-                <h2 className="text-3xl font-bold mb-8 text-white">Available Projects</h2>
+                <h2 className="text-3xl font-bold mb-8 text-white">
+                    {currentNetwork === 'polygon' ? 'Polygon' : 'Solana'} Projects
+                </h2>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {projects.map((project) => (
-                        <ProjectCard key={project.projectId} project={project} />
+                        <ProjectCard key={project.projectId.toString()} project={project} />
                     ))}
                 </div>
+                {projects.length === 0 && (
+                    <div className="text-center text-gray-400 mt-8">
+                        No projects available on {currentNetwork === 'polygon' ? 'Polygon' : 'Solana'} network
+                    </div>
+                )}
             </div>
         </div>
     );

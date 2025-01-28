@@ -613,17 +613,65 @@ export const LAUNCHPAD_ABI = [
 ]
 export const LAUNCHPAD_ADDRESS = "0xE94A37Da65Cc76990fb27af03B0826B6771EeF8e";
 
-export const getLaunchpadContract = (signer: any) => {
-    // Create provider with ENS disabled
-    const provider = new ethers.providers.Web3Provider(window.ethereum, {
-        name: "any",
-        chainId: parseInt(window.ethereum.networkVersion),
-        ensAddress: null
-    });
+export const getLaunchpadContract = (providerOrSigner: any) => {
+    try {
+        // Create contract instance
+        const contract = new ethers.Contract(
+            LAUNCHPAD_ADDRESS,
+            LAUNCHPAD_ABI,
+            providerOrSigner
+        );
+        return contract;
+    } catch (error) {
+        console.error("Error creating contract instance:", error);
+        throw error;
+    }
+};
 
-    return new ethers.Contract(
-        LAUNCHPAD_ADDRESS,
-        LAUNCHPAD_ABI,
-        signer || provider.getSigner()
-    );
+export const getProjectId = async (provider: any) => {
+    try {
+        const contract = getLaunchpadContract(provider);
+        const projectId = await contract.PROJECTID();
+        return projectId;
+    } catch (error) {
+        console.error("Error getting project ID:", error);
+        return ethers.BigNumber.from(0);
+    }
+};
+
+export const checkNetwork = async () => {
+    if (!window.ethereum) {
+        throw new Error("MetaMask is not installed");
+    }
+
+    try {
+        // Request network switch to Polygon Amoy testnet
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x13881' }], // Chain ID for Mumbai testnet
+        });
+    } catch (switchError: any) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x13881',
+                        chainName: 'Mumbai Testnet',
+                        nativeCurrency: {
+                            name: 'MATIC',
+                            symbol: 'MATIC',
+                            decimals: 18
+                        },
+                        rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
+                        blockExplorerUrls: ['https://mumbai.polygonscan.com']
+                    }]
+                });
+            } catch (addError) {
+                console.error("Error adding network:", addError);
+            }
+        }
+        console.error("Error switching network:", switchError);
+    }
 };
